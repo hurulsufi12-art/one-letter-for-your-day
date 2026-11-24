@@ -38,6 +38,11 @@ def main():
     with open(final_path, encoding="utf-8") as f:
         if f.read() != TEXT:
             raise SystemExit("entry.txt read-back mismatch after atomic write")
+    # Byte-length guard: the file on disk must hold exactly the gated
+    # text's UTF-8 bytes — catches an encoding slip that a str read-back
+    # alone would miss (e.g. a stray BOM written by another tool).
+    if os.path.getsize(final_path) != len(TEXT.encode("utf-8")):
+        raise SystemExit("entry.txt byte-length mismatch after atomic write")
 
 
 if __name__ == "__main__":
